@@ -1,0 +1,15 @@
+[project]
+name = "agentic-custom-rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "langchain-core>=0.3.83",
+    "langchain-openai>=0.3.35",
+    "langchain-text-splitters>=0.3.11",
+    "numpy>=2.0.2",
+    "python-dotenv>=1.2.1",
+    "requests>=2.32.5",
+]
