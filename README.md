@@ -6,6 +6,28 @@ Simple retrieval pipeline over web content (Lilian Weng posts) using:
 - embeddings (`OpenAIEmbeddings`)
 - in-memory vector search (`InMemoryVectorStore`)
 
+## How It Works (Chart)
+
+```mermaid
+flowchart TD
+    A["`rag/constants.py
+    DEFAULT_URLS`"] --> B["`rag/web_sources.py
+    load_web_documents()`"]
+    B --> C["`List[Document]`"]
+    C --> D["`rag/chunking.py
+    split_documents_into_chunks()`"]
+    D --> E["`chunked documents`"]
+    E --> F["`OpenAIEmbeddings`"]
+    F --> G["`InMemoryVectorStore.from_documents(...)`"]
+    G --> H["`vectorstore.as_retriever()`"]
+    H --> I["`rag/retrieval.py
+    create_retrieve_blog_posts_tool(retriever)`"]
+    I --> J["`retriever_tool.invoke({'query': ...})`"]
+    J --> K["`top matching chunks as text output`"]
+```
+
+Flow owner: `rag/web_loader.py` orchestrates this sequence end-to-end.
+
 ## Project Structure
 
 - `rag/constants.py` - source URLs
