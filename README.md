@@ -69,6 +69,9 @@ uv sync
 
 ```env
 OPENAI_API_KEY=your_key_here
+LANGSMITH_API_KEY=your_langsmith_key_here
+LANGSMITH_PROJECT=agentic-custom-rag
+LANGSMITH_TRACING=true
 ```
 
 ## Run
@@ -81,6 +84,14 @@ You should see:
 - a short retrieved text snippet
 - `Loaded X documents`
 - `Split into Y chunks`
+
+Run the LangGraph workflow (with LangSmith tracing when key is set):
+
+```bash
+uv run python rag/nodes/workflow_graph.py
+```
+
+If `LANGSMITH_API_KEY` is present, runs are tracked in LangSmith under your project.
 
 ## Notes
 

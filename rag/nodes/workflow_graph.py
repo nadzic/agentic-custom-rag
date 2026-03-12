@@ -1,7 +1,10 @@
 from langgraph.graph import StateGraph, START, END, MessagesState
 from langgraph.prebuilt import ToolNode, tools_condition
 from pathlib import Path
+import os
 import sys
+from dotenv import load_dotenv
+from langchain_core.messages import HumanMessage
 
 # Support direct execution from rag/nodes:
 # uv run python workflow_graph.py
@@ -15,6 +18,19 @@ from rag.nodes.grade_documents import grade_documents
 from rag.nodes.rewrite_question import rewrite_question
 from rag.nodes.generate_answer import generate_answer
 from rag.web_loader import get_retriever_tool
+
+
+def setup_langsmith() -> bool:
+    """Enable LangSmith tracing when API key is available."""
+    repo_root = Path(__file__).resolve().parents[2]
+    load_dotenv(repo_root / ".env")
+    if not os.getenv("LANGSMITH_API_KEY"):
+        return False
+    os.environ.setdefault("LANGSMITH_TRACING", "true")
+    os.environ.setdefault("LANGSMITH_PROJECT", "agentic-custom-rag")
+    os.environ.setdefault("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+    return True
+
 
 workflow = StateGraph(MessagesState)
 
@@ -63,3 +79,21 @@ try:
     ipy_display.display(image)
 except ModuleNotFoundError:
     print(f"Graph image saved to: {output_path}")
+
+
+if __name__ == "__main__":
+    tracing_enabled = setup_langsmith()
+    if tracing_enabled:
+        print("LangSmith tracing enabled.")
+    else:
+        print("LangSmith disabled (LANGSMITH_API_KEY not set).")
+
+    result = graph.invoke(
+        {"messages": [HumanMessage(content="What does Lilian Weng say about reward hacking types?")]},
+        config={
+            "run_name": "rag_workflow",
+            "tags": ["langgraph", "rag"],
+            "metadata": {"app": "agentic-custom-rag"},
+        },
+    )
+    print(result["messages"][-1].content)
