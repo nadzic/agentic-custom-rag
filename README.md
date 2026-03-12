@@ -6,6 +6,9 @@ Simple retrieval pipeline over web content (Lilian Weng posts) using:
 - embeddings (`OpenAIEmbeddings`)
 - in-memory vector search (`InMemoryVectorStore`)
 
+The LangGraph app is now organized in the recommended package layout with
+`my_agent/` as the graph app root.
+
 ## How It Works (Chart)
 
 ```mermaid
@@ -45,16 +48,22 @@ uv run python rag/nodes/workflow_graph.py
 
 ## Project Structure
 
-- `rag/constants.py` - source URLs
-- `rag/web_sources.py` - load documents from web pages
-- `rag/chunking.py` - split documents into chunks
-- `rag/retrieval.py` - build a retrieval tool from a retriever
-- `rag/web_loader.py` - pipeline entrypoint / example run
-- `rag/nodes/generate_query_or_respond.py` - decide tool call vs direct response
-- `rag/nodes/grade_documents.py` - grade retrieval relevance (`yes` / `no`)
-- `rag/nodes/rewrite_question.py` - rewrite low-quality questions
-- `rag/nodes/generate_answer.py` - generate final answer from context
-- `rag/nodes/workflow_graph.py` - graph wiring and PNG generation
+```text
+my_agent/
+├── utils/
+│   ├── __init__.py
+│   ├── tools.py      # env loading, LangSmith setup, retriever tool
+│   ├── nodes.py      # graph node functions
+│   └── state.py      # graph state definition
+├── __init__.py
+└── agent.py          # graph construction + run entrypoint
+```
+
+Other project files:
+- `langgraph.json` - LangGraph graph configuration
+- `requirements.txt` - pip-compatible dependency list
+- `rag/` - supporting RAG modules (web loading, chunking, retrieval)
+- `rag/nodes/workflow_graph.py` - compatibility wrapper to run/render graph from old path
 - `rag/nodes/workflow_graph.png` - generated workflow visualization
 
 ## Setup
@@ -88,10 +97,16 @@ You should see:
 Run the LangGraph workflow (with LangSmith tracing when key is set):
 
 ```bash
-uv run python rag/nodes/workflow_graph.py
+uv run python my_agent/agent.py
 ```
 
 If `LANGSMITH_API_KEY` is present, runs are tracked in LangSmith under your project.
+
+You can also run the compatibility wrapper:
+
+```bash
+uv run python rag/nodes/workflow_graph.py
+```
 
 ## Notes
 
