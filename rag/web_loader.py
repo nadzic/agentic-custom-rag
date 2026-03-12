@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 from pathlib import Path
 from dotenv import load_dotenv
 from langchain_core.vectorstores import InMemoryVectorStore
@@ -15,20 +16,31 @@ except ModuleNotFoundError:
     from web_sources import load_web_documents
 
 
-def main() -> None:
-    # Load API keys from project .env regardless of current working directory.
+def _load_env() -> None:
+    """Load API keys from project .env regardless of current working directory."""
     project_root = Path(__file__).resolve().parent.parent
     load_dotenv(project_root / ".env")
     if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is missing. Add it to .env or environment.")
 
+@lru_cache(maxsize=1)
+def get_retriever_tool():
+    """Build and cache the retrieval tool used by the graph node."""
+    _load_env()
     documents = load_web_documents()
     chunks = split_documents_into_chunks(documents)
-
     vectorstore = InMemoryVectorStore.from_documents(
         documents=chunks, embedding=OpenAIEmbeddings()
     )
-    retriever_tool = create_retrieve_blog_posts_tool(vectorstore.as_retriever())
+    return create_retrieve_blog_posts_tool(vectorstore.as_retriever())
+
+
+def main() -> None:
+    _load_env()
+    documents = load_web_documents()
+    chunks = split_documents_into_chunks(documents)
+
+    retriever_tool = get_retriever_tool()
     result = retriever_tool.invoke({"query": "types of reward hacking"})
     print(result[:500])
 
