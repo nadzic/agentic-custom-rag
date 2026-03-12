@@ -28,6 +28,21 @@ flowchart TD
 
 Flow owner: `rag/web_loader.py` orchestrates this sequence end-to-end.
 
+## Agent Workflow Graph
+
+The LangGraph workflow (query -> retrieve -> grade -> rewrite/answer) is defined in
+`rag/nodes/workflow_graph.py`.
+
+Generated workflow image:
+
+![Workflow graph](rag/nodes/workflow_graph.png)
+
+To regenerate the image:
+
+```bash
+uv run python rag/nodes/workflow_graph.py
+```
+
 ## Project Structure
 
 - `rag/constants.py` - source URLs
@@ -35,6 +50,12 @@ Flow owner: `rag/web_loader.py` orchestrates this sequence end-to-end.
 - `rag/chunking.py` - split documents into chunks
 - `rag/retrieval.py` - build a retrieval tool from a retriever
 - `rag/web_loader.py` - pipeline entrypoint / example run
+- `rag/nodes/generate_query_or_respond.py` - decide tool call vs direct response
+- `rag/nodes/grade_documents.py` - grade retrieval relevance (`yes` / `no`)
+- `rag/nodes/rewrite_question.py` - rewrite low-quality questions
+- `rag/nodes/generate_answer.py` - generate final answer from context
+- `rag/nodes/workflow_graph.py` - graph wiring and PNG generation
+- `rag/nodes/workflow_graph.png` - generated workflow visualization
 
 ## Setup
 
