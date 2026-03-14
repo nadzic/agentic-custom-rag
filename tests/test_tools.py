@@ -2,37 +2,42 @@ from types import SimpleNamespace
 
 from langchain_core.documents import Document
 
-from my_agent.utils import tools
+from app.core import config
+from app.rag.retrieval import retriever as tools
 
 
 def test_setup_langsmith_disabled_without_api_key(monkeypatch):
-    monkeypatch.setattr(tools, "load_project_env", lambda: None)
+    monkeypatch.setattr(config, "load_project_env", lambda: None)
     monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
     monkeypatch.delenv("LANGSMITH_TRACING", raising=False)
     monkeypatch.delenv("LANGSMITH_PROJECT", raising=False)
     monkeypatch.delenv("LANGSMITH_ENDPOINT", raising=False)
 
-    assert tools.setup_langsmith() is False
-    assert "LANGSMITH_TRACING" not in tools.os.environ
+    assert config.setup_langsmith() is False
+    assert "LANGSMITH_TRACING" not in config.os.environ
 
 
 def test_setup_langsmith_enabled_with_api_key(monkeypatch):
-    monkeypatch.setattr(tools, "load_project_env", lambda: None)
+    monkeypatch.setattr(config, "load_project_env", lambda: None)
     monkeypatch.setenv("LANGSMITH_API_KEY", "test-key")
     monkeypatch.delenv("LANGSMITH_TRACING", raising=False)
     monkeypatch.delenv("LANGSMITH_PROJECT", raising=False)
     monkeypatch.delenv("LANGSMITH_ENDPOINT", raising=False)
 
-    assert tools.setup_langsmith() is True
-    assert tools.os.environ["LANGSMITH_TRACING"] == "true"
-    assert tools.os.environ["LANGSMITH_PROJECT"] == "agentic-custom-rag"
-    assert tools.os.environ["LANGSMITH_ENDPOINT"] == "https://api.smith.langchain.com"
+    assert config.setup_langsmith() is True
+    assert config.os.environ["LANGSMITH_TRACING"] == "true"
+    assert config.os.environ["LANGSMITH_PROJECT"] == "agentic-custom-rag"
+    assert config.os.environ["LANGSMITH_ENDPOINT"] == "https://api.smith.langchain.com"
 
 
 def test_get_retriever_tool_requires_openai_api_key(monkeypatch):
     tools.get_retriever_tool.cache_clear()
     monkeypatch.setattr(tools, "load_project_env", lambda: None)
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setattr(
+        tools,
+        "require_openai_api_key",
+        lambda: (_ for _ in ()).throw(RuntimeError("OPENAI_API_KEY is missing")),
+    )
 
     try:
         tools.get_retriever_tool()
@@ -54,7 +59,7 @@ def test_get_retriever_tool_builds_tool(monkeypatch):
 
     tools.get_retriever_tool.cache_clear()
     monkeypatch.setattr(tools, "load_project_env", lambda: None)
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(tools, "require_openai_api_key", lambda: None)
     monkeypatch.setattr(
         tools, "load_web_documents", lambda: [Document(page_content="doc", metadata={})]
     )

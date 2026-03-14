@@ -4,11 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 from langchain_core.documents import Document
 
-try:
-    from rag.constants import DEFAULT_URLS
-except ModuleNotFoundError:
-    # Support direct execution imports from rag/ directory context.
-    from constants import DEFAULT_URLS
+from app.rag.sources.source_registry import DEFAULT_URLS
 
 
 def load_web_documents(urls: Iterable[str] = DEFAULT_URLS) -> List[Document]:
@@ -31,7 +27,6 @@ def load_web_documents(urls: Iterable[str] = DEFAULT_URLS) -> List[Document]:
                 )
             )
         except Exception as exc:
-            # Keep ingestion running even if one source is unavailable.
             print(f"Failed to load {url}: {exc}")
 
     return documents

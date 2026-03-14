@@ -1,24 +1,15 @@
 from pathlib import Path
-import sys
 
 from langchain_core.messages import HumanMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
-# Support direct execution: uv run python my_agent/agent.py
-if __package__ in (None, ""):
-    repo_root = Path(__file__).resolve().parents[1]
-    if str(repo_root) not in sys.path:
-        sys.path.insert(0, str(repo_root))
-
-from my_agent.utils.nodes import (  # noqa: E402
-    generate_answer,
-    generate_query_or_respond,
-    grade_documents,
-    rewrite_question,
-)
-from my_agent.utils.state import AgentState  # noqa: E402
-from my_agent.utils.tools import get_retriever_tool, setup_langsmith  # noqa: E402
+from app.agents.nodes.answer_node import generate_answer
+from app.agents.nodes.retrieve_node import generate_query_or_respond
+from app.agents.nodes.route_node import grade_documents, rewrite_question
+from app.agents.state import AgentState
+from app.core.config import setup_langsmith
+from app.services.rag_service import get_retriever_tool
 
 
 def build_graph():
@@ -51,18 +42,8 @@ def save_graph_image(path: Path) -> None:
     path.write_bytes(graph.get_graph().draw_mermaid_png())
 
 
-def main() -> None:
-    tracing_enabled = setup_langsmith()
-    print(
-        "LangSmith tracing enabled."
-        if tracing_enabled
-        else "LangSmith disabled (LANGSMITH_API_KEY not set)."
-    )
-
-    output_path = Path(__file__).with_name("workflow_graph.png")
-    save_graph_image(output_path)
-    print(f"Graph image saved to: {output_path}")
-
+def run_demo_query() -> str:
+    """Run one example query through the graph."""
     result = graph.invoke(
         {
             "messages": [
@@ -77,8 +58,19 @@ def main() -> None:
             "metadata": {"app": "agentic-custom-rag"},
         },
     )
-    print(result["messages"][-1].content)
+    return result["messages"][-1].content
 
 
-if __name__ == "__main__":
-    main()
+def run() -> None:
+    """CLI-like run helper."""
+    tracing_enabled = setup_langsmith()
+    print(
+        "LangSmith tracing enabled."
+        if tracing_enabled
+        else "LangSmith disabled (LANGSMITH_API_KEY not set)."
+    )
+
+    output_path = Path(__file__).with_name("workflow_graph.png")
+    save_graph_image(output_path)
+    print(f"Graph image saved to: {output_path}")
+    print(run_demo_query())
