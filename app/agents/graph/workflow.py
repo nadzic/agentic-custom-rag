@@ -4,12 +4,14 @@ from langchain_core.messages import HumanMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from app.agents.nodes.answer_node import generate_answer
-from app.agents.nodes.retrieve_node import generate_query_or_respond
-from app.agents.nodes.route_node import grade_documents, rewrite_question
-from app.agents.state import AgentState
-from app.core.config import setup_langsmith
-from app.services.rag_service import get_retriever_tool
+from app.agents.graph.edges import grade_documents
+from app.agents.graph.nodes import (
+    generate_answer,
+    generate_query_or_respond,
+    rewrite_question,
+)
+from app.agents.graph.state import AgentState
+from app.agents.tools.search import get_retriever_tool, setup_langsmith
 
 
 def build_graph():
@@ -70,7 +72,7 @@ def run() -> None:
         else "LangSmith disabled (LANGSMITH_API_KEY not set)."
     )
 
-    output_path = Path(__file__).with_name("workflow_graph.png")
+    output_path = Path(__file__).resolve().parents[1] / "workflow_graph.png"
     save_graph_image(output_path)
     print(f"Graph image saved to: {output_path}")
     print(run_demo_query())

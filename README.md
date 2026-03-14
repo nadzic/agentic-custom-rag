@@ -34,11 +34,11 @@ Flow owner: `app/agents/graph.py` orchestrates this sequence end-to-end.
 ## Agent Workflow Graph
 
 The LangGraph workflow (query -> retrieve -> grade -> rewrite/answer) is defined in
-`app/agents/graph.py`.
+`app/agents/graph/workflow.py`.
 
 Generated workflow image:
 
-![Workflow graph](app/agents/workflow_graph.png)
+![Workflow graph](app/agents/graph/workflow_graph.png)
 
 To regenerate the image:
 
@@ -69,15 +69,16 @@ app/
 │   │   └── chunking.py
 │   └── retrieval/
 │       └── retriever.py
-├── llm/
-│   └── model.py
 └── agents/
-    ├── graph.py
-    ├── state.py
-    └── nodes/
-        ├── retrieve_node.py
-        ├── answer_node.py
-        └── route_node.py
+    ├── graph/
+    │   ├── state.py
+    │   ├── nodes.py
+    │   ├── edges.py
+    │   └── workflow.py
+    ├── llm/
+    │   └── model.py
+    └── tools/
+        └── search.py
 ```
 
 Other project files:

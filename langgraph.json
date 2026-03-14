@@ -3,7 +3,7 @@
     "."
   ],
   "graphs": {
-    "agent": "./app/agents/graph.py:graph"
+    "agent": "./app/agents/graph/workflow.py:graph"
   },
   "env": ".env"
 }

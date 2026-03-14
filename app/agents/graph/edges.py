@@ -1,19 +1,9 @@
 from typing import Literal
 
-from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, Field
 
-from app.agents.state import AgentState
-from app.llm.model import get_response_model
-
-REWRITE_PROMPT = (
-    "Look at the input and reason about the underlying semantic intent.\n"
-    "Initial question:\n"
-    "-------\n"
-    "{question}\n"
-    "-------\n"
-    "Formulate an improved question."
-)
+from app.agents.graph.state import AgentState
+from app.agents.llm.model import get_response_model
 
 GRADE_PROMPT = (
     "You are a grader assessing relevance of a retrieved document to a user question.\n"
@@ -45,13 +35,3 @@ def grade_documents(state: AgentState) -> Literal["generate_answer", "rewrite_qu
         [{"role": "user", "content": prompt}]
     )
     return "generate_answer" if result.binary_score == "yes" else "rewrite_question"
-
-
-def rewrite_question(state: AgentState) -> AgentState:
-    """Rewrite the original user question for a better retrieval query."""
-    question = state["messages"][0].content
-    prompt = REWRITE_PROMPT.format(question=question)
-
-    response_model = get_response_model()
-    response = response_model.invoke([{"role": "user", "content": prompt}])
-    return {"messages": [HumanMessage(content=response.content)]}
